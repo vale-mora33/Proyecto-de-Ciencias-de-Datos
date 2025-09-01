@@ -1,0 +1,115 @@
+---
+title: 'Informe Técnico: Indicadores Socioeconómicos de EE.UU.'
+author: "Valeria Mora"
+date: "2025-08-27"
+output:
+  html_document: default
+  pdf_document: default
+---
+
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+install.packages("tinytex")
+tinytex::install_tinytex()
+
+library(tidyverse)
+library(knitr)
+
+# Cargar base depurada
+data_clean <- read_csv("Base_de_datos_depurada.csv") %>%
+  rename(
+    label = 1,
+    estimate = 2,
+    percent = 4
+  ) %>%
+  mutate(
+    estimate = as.numeric(gsub(",", "", estimate)),
+    percent = as.numeric(gsub("%", "", percent))
+  )
+  
+  indicadores <- data_clean %>%
+  filter(label %in% c(
+    "Population 16 years and over",
+    "In labor force",
+    "Employed",
+    "Unemployed",
+    "Median household income (dollars)"
+  )) %>%
+  select(label, estimate, percent)
+
+kable(indicadores, caption = "Tabla 1. Indicadores clave de población y economía")
+
+fig_labor <- data_clean %>%
+  filter(str_detect(label, "In labor force|Employed|Unemployed"))
+
+ggplot(fig_labor, aes(x = label, y = estimate, fill = label)) +
+  geom_bar(stat = "identity") +
+  labs(title = "Indicadores de Fuerza Laboral",
+       x = "",
+       y = "Número de Personas") +
+  theme_minimal() +
+  theme(legend.position = "none")
+
+
+total_hogares <- data_clean %>% filter(label == "Total households") %>% pull(estimate)
+
+hogares_bajo_15000 <- data_clean %>%
+  filter(label %in% c("Less than $10,000", "$10,000 to $14,999")) %>%
+  summarise(total = sum(estimate, na.rm=TRUE)) %>%
+  pull(total)
+
+pct_bajo_15000 <- round(hogares_bajo_15000 / total_hogares * 100, 1)
+pct_encima_15000 <- 100 - pct_bajo_15000
+
+# Pie char
+ggplot(data.frame(
+  grupo = c("En pobreza (<$15,000)", "No en pobreza"),
+  valor = c(pct_bajo_15000, pct_encima_15000)
+), aes(x="", y=valor, fill=grupo)) +
+  geom_bar(stat="identity", width=1) +
+  coord_polar(theta="y") +
+  labs(title="Aproximación de Incidencia de Pobreza") +
+  theme_void() +
+  theme(legend.title=element_blank())
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
