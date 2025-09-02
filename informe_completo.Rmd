@@ -3,8 +3,8 @@ title: 'Informe Técnico: Indicadores Socioeconómicos de EE.UU.'
 author: "Valeria Mora"
 date: "2025-08-27"
 output:
-  html_document: default
   pdf_document: default
+  html_document: default
 ---
 
 
