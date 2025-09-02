@@ -9,14 +9,15 @@ output:
 
 
 ```{r setup, include=FALSE}
-knitr::opts_chunk$set(echo = TRUE)
-```
-install.packages("tinytex")
-tinytex::install_tinytex()
-
+# Configuración inicial
+knitr::opts_chunk$set(echo = TRUE, warning = FALSE, message = FALSE)
 library(tidyverse)
 library(knitr)
+```
 
+#Tabla de indicadores clave
+
+```{r}
 # Cargar base depurada
 data_clean <- read_csv("Base_de_datos_depurada.csv") %>%
   rename(
@@ -28,8 +29,9 @@ data_clean <- read_csv("Base_de_datos_depurada.csv") %>%
     estimate = as.numeric(gsub(",", "", estimate)),
     percent = as.numeric(gsub("%", "", percent))
   )
-  
-  indicadores <- data_clean %>%
+
+# Filtrar indicadores
+indicadores <- data_clean %>%
   filter(label %in% c(
     "Population 16 years and over",
     "In labor force",
@@ -40,7 +42,10 @@ data_clean <- read_csv("Base_de_datos_depurada.csv") %>%
   select(label, estimate, percent)
 
 kable(indicadores, caption = "Tabla 1. Indicadores clave de población y economía")
+```
 
+#Gráfico de fuerza laboral
+```{r}
 fig_labor <- data_clean %>%
   filter(str_detect(label, "In labor force|Employed|Unemployed"))
 
@@ -51,8 +56,11 @@ ggplot(fig_labor, aes(x = label, y = estimate, fill = label)) +
        y = "Número de Personas") +
   theme_minimal() +
   theme(legend.position = "none")
+```
 
 
+#Gráfico de pobreza aproximada
+```{r}
 total_hogares <- data_clean %>% filter(label == "Total households") %>% pull(estimate)
 
 hogares_bajo_15000 <- data_clean %>%
@@ -63,7 +71,6 @@ hogares_bajo_15000 <- data_clean %>%
 pct_bajo_15000 <- round(hogares_bajo_15000 / total_hogares * 100, 1)
 pct_encima_15000 <- 100 - pct_bajo_15000
 
-# Pie char
 ggplot(data.frame(
   grupo = c("En pobreza (<$15,000)", "No en pobreza"),
   valor = c(pct_bajo_15000, pct_encima_15000)
@@ -73,16 +80,33 @@ ggplot(data.frame(
   labs(title="Aproximación de Incidencia de Pobreza") +
   theme_void() +
   theme(legend.title=element_blank())
+```
+
+# Gráfico 1: Indicadores de Fuerza Laboral
+
+Este gráfico de barras representa distintos indicadores del mercado laboral:
+
+- **Employed (Empleados):** Más de 160 millones de personas están empleadas.  
+- **In Labor Force (En la fuerza laboral):** Aproximadamente 173 millones de personas participan activamente en el mercado laboral (trabajando o buscando empleo).  
+- **Unemployed (Desempleados):** Alrededor de 7.4 millones de personas están desempleadas.
+
+**Interpretación:**  
+- La mayoría de la población en edad laboral está empleada.  
+- El desempleo es bajo en términos relativos (~2.7%, como se muestra en la tabla).
 
 
+# Gráfico 2: Aproximación de Incidencia de Pobreza
 
+Este gráfico de pastel muestra la proporción de personas según su nivel de ingresos:
 
+**Datos principales:**  
+- **En pobreza (<$15,000):** Representan aproximadamente `r pct_bajo_15000`% de los hogares.  
+- **No en pobreza:** La mayoría tiene ingresos por encima del umbral de pobreza (`r pct_encima_15000`%).
 
-
-
-
-
-
+**Interpretación:**  
+- Aunque hay personas en situación de pobreza, la mayoría de la población no se encuentra en pobreza extrema.  
+- Esto se relaciona con el ingreso mediano del hogar, que es de $77,719, lo cual es relativamente alto.  
+- Permite identificar segmentos de población con menor capacidad económica y resalta desigualdades en ingresos.
 
 
 
